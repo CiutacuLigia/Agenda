@@ -1,0 +1,54 @@
+﻿@page "/utilizators/details"
+@using Microsoft.EntityFrameworkCore
+@using Agenda.Models
+@inject IDbContextFactory<Agenda.Data.AgendaContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h2>Utilizator</h2>
+    <hr />
+    @if (utilizator is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Nume</dt>
+            <dd class="col-sm-10">@utilizator.Nume</dd>
+            <dt class="col-sm-2">Prenume</dt>
+            <dd class="col-sm-10">@utilizator.Prenume</dd>
+            <dt class="col-sm-2">Telefon</dt>
+            <dd class="col-sm-10">@utilizator.Telefon</dd>
+            <dt class="col-sm-2">Birthday</dt>
+            <dd class="col-sm-10">@utilizator.Birthday</dd>
+            <dt class="col-sm-2">Observatie</dt>
+            <dd class="col-sm-10">@utilizator.Observatie</dd>
+        </dl>
+        <div>
+            <a href="@($"/utilizators/edit?id={utilizator.Id}")">Edit</a> |
+            <a href="@($"/utilizators")">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    private Utilizator? utilizator;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        utilizator = await context.Utilizator.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (utilizator is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

@@ -1,0 +1,97 @@
+﻿@page "/utilizators"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Agenda.Models
+@using Agenda.Data
+@rendermode InteractiveServer
+@implements IAsyncDisposable
+@inject IDbContextFactory<Agenda.Data.AgendaContext> DbFactory
+
+
+<PageTitle>Agenda</PageTitle>
+
+<h1>Contacte</h1>
+
+<p>
+	<a href="utilizators/create">Create New</a>
+</p>
+
+<!-- Căutare -->
+<p>
+	<input type="text" @bind="searchQuery" placeholder="Search..." />
+	<button class="btn btn-primary" @onclick="SearchUtilizatori">Search</button>
+
+</p>
+
+<p>Numar @numar</p>
+<button class="btn btn-primary" @onclick="MarireNUmar">Click me</button>
+
+
+
+<!-- Gridul cu utilizatori -->
+<QuickGrid Class="table" Items="utilizatori.AsQueryable()">
+	<PropertyColumn Property="utilizator => utilizator.Nume" />
+	<PropertyColumn Property="utilizator => utilizator.Prenume" />
+	<PropertyColumn Property="utilizator => utilizator.Telefon" />
+	<PropertyColumn Property="utilizator => utilizator.Birthday" Title="Data Nasterii" Format="dd/MM/yyyy" />
+	<PropertyColumn Property="utilizator => utilizator.Observatie" />
+
+	<TemplateColumn Context="utilizator">
+		<a href="@($"utilizators/edit?id={utilizator.Id}")">Edit</a> |
+		<a href="@($"utilizators/details?id={utilizator.Id}")">Details</a> |
+		<a href="@($"utilizators/delete?id={utilizator.Id}")">Delete</a>
+	</TemplateColumn>
+</QuickGrid>
+
+
+@code {
+	private AgendaContext context = default!;
+	private List<Utilizator> utilizatori = new List<Utilizator>();
+	private string searchQuery = string.Empty;
+	private int numar = 0;
+
+
+
+
+
+	protected override async Task OnInitializedAsync()
+	{
+		// Crează contextul la inițializare
+		context = DbFactory.CreateDbContext();
+		await LoadUtilizatoriAsync();
+	}
+
+	private async Task LoadUtilizatoriAsync()
+	{
+		// Încarcă toți utilizatorii sau doar cei care corespund căutării
+		if (string.IsNullOrEmpty(searchQuery))
+		{
+			utilizatori = await context.Utilizator.ToListAsync();
+		}
+		else
+		{
+			utilizatori = await context.Utilizator
+				.Where(u => u.Nume.Contains(searchQuery) || u.Prenume.Contains(searchQuery))
+				.ToListAsync();
+		}
+	}
+
+	private async Task SearchUtilizatori()
+	{
+		await LoadUtilizatoriAsync();  
+		StateHasChanged();  
+	}
+
+
+
+	public async ValueTask DisposeAsync()
+	{
+		// Curăță resursele când componenta este distrusă
+		await context.DisposeAsync();
+	}
+
+	private void MarireNUmar(MouseEventArgs e)
+	{
+		numar++;
+	}
+}

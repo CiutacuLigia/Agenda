@@ -1,0 +1,109 @@
+﻿@page "/utilizators/edit"
+@using Microsoft.EntityFrameworkCore
+@using Agenda.Models
+@inject IDbContextFactory<Agenda.Data.AgendaContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h2>Utilizator</h2>
+<hr />
+@if (Utilizator is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Utilizator" OnValidSubmit="UpdateUtilizator" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary role="alert"/>
+                <input type="hidden" name="Utilizator.Id" value="@Utilizator.Id" />
+                <div class="mb-3">
+                    <label for="nume" class="form-label">Nume:</label>
+                    <InputText id="nume" @bind-Value="Utilizator.Nume" class="form-control" />
+                    <ValidationMessage For="() => Utilizator.Nume" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="prenume" class="form-label">Prenume:</label>
+                    <InputText id="prenume" @bind-Value="Utilizator.Prenume" class="form-control" />
+                    <ValidationMessage For="() => Utilizator.Prenume" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="telefon" class="form-label">Telefon:</label>
+                    <InputText id="telefon" @bind-Value="Utilizator.Telefon" class="form-control" />
+                    <ValidationMessage For="() => Utilizator.Telefon" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="birthday" class="form-label">Birthday:</label>
+                    <InputDate id="birthday" @bind-Value="Utilizator.Birthday" class="form-control" />
+                    <ValidationMessage For="() => Utilizator.Birthday" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="observatie" class="form-label">Observatie:</label>
+                    <InputText id="observatie" @bind-Value="Utilizator.Observatie" class="form-control" />
+                    <ValidationMessage For="() => Utilizator.Observatie" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/utilizators">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private Utilizator? Utilizator { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Utilizator ??= await context.Utilizator.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Utilizator is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateUtilizator()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(Utilizator!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!UtilizatorExists(Utilizator!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/utilizators");
+    }
+
+    private bool UtilizatorExists(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Utilizator.Any(e => e.Id == id);
+    }
+}

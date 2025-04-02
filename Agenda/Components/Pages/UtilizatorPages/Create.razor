@@ -1,0 +1,65 @@
+﻿@page "/utilizators/create"
+@using Microsoft.EntityFrameworkCore
+@using Agenda.Models
+@inject IDbContextFactory<Agenda.Data.AgendaContext> DbFactory
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h2>Utilizator</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Utilizator" OnValidSubmit="AddUtilizator" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert"/>
+            <div class="mb-3">
+                <label for="nume" class="form-label">Nume:</label> 
+                <InputText id="nume" @bind-Value="Utilizator.Nume" class="form-control" /> 
+                <ValidationMessage For="() => Utilizator.Nume" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="prenume" class="form-label">Prenume:</label> 
+                <InputText id="prenume" @bind-Value="Utilizator.Prenume" class="form-control" /> 
+                <ValidationMessage For="() => Utilizator.Prenume" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="telefon" class="form-label">Telefon:</label> 
+                <InputText id="telefon" @bind-Value="Utilizator.Telefon" class="form-control" /> 
+                <ValidationMessage For="() => Utilizator.Telefon" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="birthday" class="form-label">Birthday:</label> 
+                <InputDate id="birthday" @bind-Value="Utilizator.Birthday" class="form-control" /> 
+                <ValidationMessage For="() => Utilizator.Birthday" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="observatie" class="form-label">Observatie:</label> 
+                <InputText id="observatie" @bind-Value="Utilizator.Observatie" class="form-control" /> 
+                <ValidationMessage For="() => Utilizator.Observatie" class="text-danger" /> 
+            </div>        
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/utilizators">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Utilizator Utilizator { get; set; } = new();
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddUtilizator()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Utilizator.Add(Utilizator);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/utilizators");
+    }
+}
