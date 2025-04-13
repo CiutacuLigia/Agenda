@@ -6,6 +6,7 @@ namespace Agenda.Models
     {
         public int Id { get; set; }
         [Required(ErrorMessage = "Numele este necesar.")]
+        [RegularExpression("^[a-zA-ZăâîșțĂÂÎȘȚ]+$", ErrorMessage = "Numele poate conține doar litere.")]
         public string? Nume { get; set; }
         public string? Prenume { get; set; }
 

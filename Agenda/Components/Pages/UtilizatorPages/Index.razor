@@ -6,25 +6,88 @@
 @rendermode InteractiveServer
 @implements IAsyncDisposable
 @inject IDbContextFactory<Agenda.Data.AgendaContext> DbFactory
+@inject NavigationManager NavigationManager
 
 
 <PageTitle>Agenda</PageTitle>
 
 <h1>Contacte</h1>
 
-<p>
-	<a href="utilizators/create">Create New</a>
-</p>
+<div class="d-flex flex-row align-start gap-5">
+	<!-- Căutare -->
+	<div class="p-2 flex-grow-1">
+		<div class="mb-3 ">
+			<input type="text" @bind="searchQuery" placeholder="Search..." class="form-control mb-2" />
 
-<!-- Căutare -->
-<p>
-	<input type="text" @bind="searchQuery" placeholder="Search..." />
-	<button class="btn btn-primary" @onclick="SearchUtilizatori">Search</button>
+		</div>
+		<div class="text-center">
+			<button class="btn btn-primary w-50 mb-2" @onclick="SearchUtilizatori">Search</button>
+			<button class="btn btn-primary w-50" @onclick="CreareUtilizator">Create New</button>
+		</div>
 
-</p>
 
-<p>Numar @numar</p>
-<button class="btn btn-primary" @onclick="MarireNUmar">Click me</button>
+
+	</div>
+
+
+
+
+
+	<div class= "@vizibilitate flex-grow-1" >
+
+
+		<div class="card p-2 shadow-sm text-center" style="max-width: 700px; margin: auto;">
+			<EditForm method="post" Model="Utilizator" OnValidSubmit="AddUtilizator" FormName="create" Enhance>
+				<DataAnnotationsValidator />
+				<ValidationSummary class="text-danger" role="alert" />
+
+				<div class="row justify-content-center mb-2">
+					<div class=" col-md-4">
+						<label for="nume" class="form-label">Nume:</label>
+						<InputText id="nume" @bind-Value="Utilizator.Nume" class="form-control form-control-sm" />
+						<ValidationMessage For="() => Utilizator.Nume" class="text-danger" />
+					</div>
+					<div class=" col-md-4">
+						<label for="prenume" class="form-label">Prenume:</label>
+						<InputText id="prenume" @bind-Value="Utilizator.Prenume" class="form-control form-control-sm" />
+						<ValidationMessage For="() => Utilizator.Prenume" class="text-danger" />
+					</div>
+				
+					<div class="col-md-4">
+						
+						<label for="telefon" class="form-label">Telefon:</label>
+						<InputText id="telefon" @bind-Value="Utilizator.Telefon" class="form-control form-control-sm" />
+						<ValidationMessage For="() => Utilizator.Telefon" class="text-danger" />
+					</div>
+				</div>
+				@if (!string.IsNullOrEmpty(errorMessage))
+				{
+					<p class="alert alert-danger">@errorMessage</p>
+				}
+
+				<div class="row justify-content-center mb-2">
+					<div class="col-md-4">
+						<label for="birthday" class="form-label">Birthday:</label>
+						<InputDate id="birthday" @bind-Value="Utilizator.Birthday" class="form-control form-control-sm" />
+						<ValidationMessage For="() => Utilizator.Birthday" class="text-danger" />
+					</div>
+					<div class="col-md-4">
+						<label for="observatie" class="form-label">Observatie:</label>
+						<InputText id="observatie" @bind-Value="Utilizator.Observatie" class="form-control form-control-sm" />
+						<ValidationMessage For="() => Utilizator.Observatie" class="text-danger" />
+					</div>
+				</div>
+
+				<button type="submit" class="btn btn-primary">Create</button>
+			</EditForm>
+		</div>
+	</div>
+
+</div>
+
+
+
+
 
 
 
@@ -44,14 +107,42 @@
 </QuickGrid>
 
 
+
+
+
+
+
+
 @code {
+	private string errorMessage = string.Empty;
 	private AgendaContext context = default!;
 	private List<Utilizator> utilizatori = new List<Utilizator>();
 	private string searchQuery = string.Empty;
 	private int numar = 0;
+	private string vizibilitate = "invisible";
 
 
+	[SupplyParameterFromForm]
+	private Utilizator Utilizator { get; set; } = new();
 
+	// To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+	private async Task AddUtilizator()
+	{
+		using var context = DbFactory.CreateDbContext();
+		
+		bool numarExistent = await context.Utilizator.AnyAsync(u => u.Telefon == Utilizator.Telefon);
+		if(numarExistent){
+			errorMessage = "Numărul de telefon există deja!";
+			return;
+		}
+
+		context.Utilizator.Add(Utilizator);
+		await context.SaveChangesAsync();
+		vizibilitate = "invisible";
+
+		NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+
+	}
 
 
 	protected override async Task OnInitializedAsync()
@@ -90,8 +181,9 @@
 		await context.DisposeAsync();
 	}
 
-	private void MarireNUmar(MouseEventArgs e)
+	
+	private void CreareUtilizator(MouseEventArgs e)
 	{
-		numar++;
+		vizibilitate = "visible";
 	}
 }
