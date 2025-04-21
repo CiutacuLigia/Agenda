@@ -13,16 +13,16 @@
 
 <h1>Contacte</h1>
 
-<div class="d-flex flex-row align-start gap-5">
+<div >
 	<!-- Căutare -->
-	<div class="p-2 flex-grow-1">
-		<div class="mb-3 ">
+	<div>
+		<div class="w-25 mb-3 center">
 			<input type="text" @bind="searchQuery" placeholder="Search..." class="form-control mb-2" />
 
 		</div>
-		<div class="text-center">
-			<button class="btn btn-primary w-50 mb-2" @onclick="SearchUtilizatori">Search</button>
-			<button class="btn btn-primary w-50" @onclick="CreareUtilizator">Create New</button>
+		<div>
+			<button class="btn btn-primary " @onclick="SearchUtilizatori">Search</button>
+			<button class="btn btn-success " data-bs-toggle="modal" data-bs-target="#addUserModal">Create New</button>
 		</div>
 
 
@@ -33,55 +33,83 @@
 
 
 
-	<div class= "@vizibilitate flex-grow-1" >
-
-
-		<div class="card p-2 shadow-sm text-center" style="max-width: 700px; margin: auto;">
-			<EditForm method="post" Model="Utilizator" OnValidSubmit="AddUtilizator" FormName="create" Enhance>
-				<DataAnnotationsValidator />
-				<ValidationSummary class="text-danger" role="alert" />
-
-				<div class="row justify-content-center mb-2">
-					<div class=" col-md-4">
-						<label for="nume" class="form-label">Nume:</label>
-						<InputText id="nume" @bind-Value="Utilizator.Nume" class="form-control form-control-sm" />
-						<ValidationMessage For="() => Utilizator.Nume" class="text-danger" />
-					</div>
-					<div class=" col-md-4">
-						<label for="prenume" class="form-label">Prenume:</label>
-						<InputText id="prenume" @bind-Value="Utilizator.Prenume" class="form-control form-control-sm" />
-						<ValidationMessage For="() => Utilizator.Prenume" class="text-danger" />
-					</div>
-				
-					<div class="col-md-4">
-						
-						<label for="telefon" class="form-label">Telefon:</label>
-						<InputText id="telefon" @bind-Value="Utilizator.Telefon" class="form-control form-control-sm" />
-						<ValidationMessage For="() => Utilizator.Telefon" class="text-danger" />
-					</div>
+	<!-- Modal pentru Adaugare Utilizator -->
+	<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-lg modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="addUserModalLabel">Adaugă Utilizator Nou</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Închide"></button>
 				</div>
-				@if (!string.IsNullOrEmpty(errorMessage))
-				{
-					<p class="alert alert-danger">@errorMessage</p>
-				}
+				<div class="modal-body">
+					<EditForm method="post" Model="Utilizator" OnValidSubmit="AddUtilizator" FormName="create" Enhance>
+						<DataAnnotationsValidator />
+						<ValidationSummary class="text-danger" role="alert" />
 
-				<div class="row justify-content-center mb-2">
-					<div class="col-md-4">
-						<label for="birthday" class="form-label">Birthday:</label>
-						<InputDate id="birthday" @bind-Value="Utilizator.Birthday" class="form-control form-control-sm" />
-						<ValidationMessage For="() => Utilizator.Birthday" class="text-danger" />
-					</div>
-					<div class="col-md-4">
-						<label for="observatie" class="form-label">Observatie:</label>
-						<InputText id="observatie" @bind-Value="Utilizator.Observatie" class="form-control form-control-sm" />
-						<ValidationMessage For="() => Utilizator.Observatie" class="text-danger" />
-					</div>
+						<div class="mb-3">
+							<label for="nume" class="form-label">Nume</label>
+							<InputText id="nume" @bind-Value="Utilizator.Nume" class="form-control" />
+							<ValidationMessage For="() => Utilizator.Nume" class="text-danger" />
+						</div>
+
+						<div class="mb-3">
+							<label for="prenume" class="form-label">Prenume</label>
+							<InputText id="prenume" @bind-Value="Utilizator.Prenume" class="form-control" />
+							<ValidationMessage For="() => Utilizator.Prenume" class="text-danger" />
+						</div>
+
+						<div class="mb-3">
+							<label for="telefon" class="form-label">Telefon</label>
+							<InputText id="telefon" @bind-Value="Utilizator.Telefon" class="form-control" />
+							<ValidationMessage For="() => Utilizator.Telefon" class="text-danger" />
+						</div>
+						@if (!string.IsNullOrEmpty(errorMessage))
+						{
+							<p class="alert alert-danger">@errorMessage</p>
+						}
+
+						<div class="mb-3">
+							<label for="birthday" class="form-label">Data nașterii</label>
+							<InputDate id="birthday" @bind-Value="Utilizator.Birthday" class="form-control" />
+							<ValidationMessage For="() => Utilizator.Birthday" class="text-danger" />
+						</div>
+
+						<div class="mb-3">
+							<label for="observatie" class="form-label">Observații</label>
+							<InputText id="observatie" @bind-Value="Utilizator.Observatie" class="form-control" />
+							<ValidationMessage For="() => Utilizator.Observatie" class="text-danger" />
+						</div>
+
+						<div class="mb-3">
+							<label for="relatie" class="form-label">Relație</label>
+							<InputSelect id="relatie" @bind-Value="Utilizator.Relatie" class="form-control">
+								<option value="">Alege relația</option>
+								<option value="Mama">Mama</option>
+								<option value="Tata">Tata</option>
+								<option value="Frate">Frate</option>
+								<option value="Sora">Sora</option>
+								<option value="Cumnat">Cumnat</option>
+								<option value="Cumnata">Cumnata</option>
+								<option value="Var">Var</option>
+								<option value="Verișoară">Verișoară</option>
+								<option value="Unchi">Unchi</option>
+								<option value="Nora">Nora</option>
+								<option value="Ginere">Ginere</option>
+								<option value="Prieten">Prieten</option>
+								<option value="Coleg">Coleg</option>
+								<option value="Altele">Altele</option>
+							</InputSelect>
+							<ValidationMessage For="() => Utilizator.Relatie" class="text-danger" />
+						</div>
+
+
+						<button type="submit" class="btn btn-primary">Adaugă</button>
+					</EditForm>
 				</div>
-
-				<button type="submit" class="btn btn-primary">Create</button>
-			</EditForm>
+			</div>
 		</div>
 	</div>
+
 
 </div>
 
@@ -98,6 +126,7 @@
 	<PropertyColumn Property="utilizator => utilizator.Telefon" />
 	<PropertyColumn Property="utilizator => utilizator.Birthday" Title="Data Nasterii" Format="dd/MM/yyyy" />
 	<PropertyColumn Property="utilizator => utilizator.Observatie" />
+	<PropertyColumn Property="utilizator => utilizator.Relatie" />
 
 	<TemplateColumn Context="utilizator">
 		<a href="@($"utilizators/edit?id={utilizator.Id}")">Edit</a> |
@@ -119,7 +148,7 @@
 	private List<Utilizator> utilizatori = new List<Utilizator>();
 	private string searchQuery = string.Empty;
 	private int numar = 0;
-	private string vizibilitate = "invisible";
+	
 
 
 	[SupplyParameterFromForm]
@@ -138,7 +167,6 @@
 
 		context.Utilizator.Add(Utilizator);
 		await context.SaveChangesAsync();
-		vizibilitate = "invisible";
 
 		NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
 
@@ -181,9 +209,4 @@
 		await context.DisposeAsync();
 	}
 
-	
-	private void CreareUtilizator(MouseEventArgs e)
-	{
-		vizibilitate = "visible";
-	}
 }

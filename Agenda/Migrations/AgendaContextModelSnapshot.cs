@@ -17,7 +17,7 @@ namespace Agenda.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.11")
+                .HasAnnotation("ProductVersion", "9.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -38,15 +38,17 @@ namespace Agenda.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Observatie")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Prenume")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Relatie")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string?>("Telefon")
-                        .HasColumnType("int");
+                    b.Property<string>("Telefon")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

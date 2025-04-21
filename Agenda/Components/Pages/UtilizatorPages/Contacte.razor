@@ -1,0 +1,54 @@
+﻿@page "/contacte/{Categorie}"
+@inject AgendaContext context
+
+<h3>@Categorie</h3>
+
+@if (utilizatoriFiltrati.Any())
+{
+    <ul class="list-group">
+        @foreach (var user in utilizatoriFiltrati)
+        {
+            <li class="list-group-item">
+                <strong>@user.Nume @user.Prenume</strong> - @user.Telefon <br />
+                <em>Observație:</em> @user.Observatie <br />
+                <em>Relație:</em> @user.Relatie
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>Nu există utilizatori în această categorie.</p>
+}
+
+@code {
+    [Parameter]
+    public string? Categorie { get; set; }
+
+    private List<Utilizator> utilizatoriFiltrati = new();
+    private readonly List<string> familieKeywords = new()
+    {
+        "var", "frate", "sora", "cumnat", "cumnata", "mama", "tata",
+        "verisor", "verisoara", "unchi", "nora", "ginere"
+    };
+
+    protected override void OnInitialized()
+    {
+        var totiUtilizatorii = context.Utilizator.ToList();
+        if (Categorie?.ToLower() == "familie")
+        {
+            utilizatoriFiltrati = totiUtilizatorii
+                .Where(u => u.Relatie != null &&
+                            familieKeywords.Contains(u.Relatie.ToLower()))
+                .ToList();
+        }
+        else // cunoștințe, prieteni sau orice altceva
+        {
+            utilizatoriFiltrati = totiUtilizatorii
+                .Where(u => u.Relatie == null ||
+                            !familieKeywords.Contains(u.Relatie.ToLower()))
+                .ToList();
+        }
+    }
+
+}

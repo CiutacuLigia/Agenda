@@ -14,5 +14,7 @@ namespace Agenda.Models
         public string? Telefon { get; set; }
         public DateTime? Birthday { get; set; }
         public string? Observatie { get; set; }
+        [Required]
+        public string? Relatie { get; set; }
     }
 }

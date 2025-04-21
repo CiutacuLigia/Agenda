@@ -18,10 +18,11 @@ namespace Agenda.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Nume = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Prenume = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Telefon = table.Column<string>(type: "int", nullable: true),
+                    Prenume = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Telefon = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Birthday = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Observatie = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Observatie = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Relatie = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
