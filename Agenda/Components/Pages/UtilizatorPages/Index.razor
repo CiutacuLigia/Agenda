@@ -1,12 +1,8 @@
 ﻿@page "/utilizators"
-@using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.QuickGrid
-@using Agenda.Models
-@using Agenda.Data
 @rendermode InteractiveServer
-@implements IAsyncDisposable
-@inject IDbContextFactory<Agenda.Data.AgendaContext> DbFactory
 @inject NavigationManager NavigationManager
+@using Agenda.Components.Data
 
 
 <PageTitle>Agenda</PageTitle>
@@ -111,6 +107,72 @@
 	</div>
 
 
+	<!--modalul de editare-->
+	@if (IsEditMode)
+	{
+		<div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+			<div class="modal-dialog modal-lg modal-dialog-centered">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">Editează Utilizator</h5>
+						<button type="button" class="btn-close" @onclick="InchideEditModal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<EditForm Model="UtilizatorEditat" OnValidSubmit="SalveazaModificari">
+							<DataAnnotationsValidator />
+							<ValidationSummary />
+
+							<div class="mb-3">
+								<label>Nume</label>
+								<InputText class="form-control" @bind-Value="UtilizatorEditat.Nume" />
+							</div>
+							<div class="mb-3">
+								<label>Prenume</label>
+								<InputText class="form-control" @bind-Value="UtilizatorEditat.Prenume" />
+							</div>
+							<div class="mb-3">
+								<label>Telefon</label>
+								<InputText class="form-control" @bind-Value="UtilizatorEditat.Telefon" />
+							</div>
+							<div class="mb-3">
+								<label>Data nașterii</label>
+								<InputDate class="form-control" @bind-Value="UtilizatorEditat.Birthday" />
+							</div>
+							<div class="mb-3">
+								<label>Observații</label>
+								<InputText class="form-control" @bind-Value="UtilizatorEditat.Observatie" />
+							</div>
+							<div class="mb-3">
+								<label>Relație</label>
+								<InputSelect class="form-control" @bind-Value="UtilizatorEditat.Relatie">
+									<option value="">Alege relația</option>
+									<option value="Mama">Mama</option>
+									<option value="Tata">Tata</option>
+									<option value="Frate">Frate</option>
+									<option value="Sora">Sora</option>
+									<option value="Cumnat">Cumnat</option>
+									<option value="Cumnata">Cumnata</option>
+									<option value="Var">Var</option>
+									<option value="Verișoară">Verișoară</option>
+									<option value="Unchi">Unchi</option>
+									<option value="Nora">Nora</option>
+									<option value="Ginere">Ginere</option>
+									<option value="Prieten">Prieten</option>
+									<option value="Coleg">Coleg</option>
+									<option value="Altele">Altele</option>
+								</InputSelect>
+							</div>
+
+							<button type="submit" class="btn btn-primary">Salvează</button>
+						</EditForm>
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+
+
+
 </div>
 
 
@@ -129,9 +191,9 @@
 	<PropertyColumn Property="utilizator => utilizator.Relatie" />
 
 	<TemplateColumn Context="utilizator">
-		<a href="@($"utilizators/edit?id={utilizator.Id}")">Edit</a> |
-		<a href="@($"utilizators/details?id={utilizator.Id}")">Details</a> |
-		<a href="@($"utilizators/delete?id={utilizator.Id}")">Delete</a>
+		<button type="button" class="btn-sm  btn-primary " @onclick="@(() => DeschideEditModal(utilizator))">Edit</button> ||
+		<button type="button" class="btn-sm  btn-primary " href="@($"/utilizators/details/{utilizator.Id}")">Details</button>||
+		<button type="button" class="btn-sm  btn-primary" href="@($"utilizators/delete/{utilizator.Id}")">Delete</button>
 	</TemplateColumn>
 </QuickGrid>
 
@@ -144,56 +206,61 @@
 
 @code {
 	private string errorMessage = string.Empty;
-	private AgendaContext context = default!;
-	private List<Utilizator> utilizatori = new List<Utilizator>();
+	private List<utilizator> utilizatori = new List<utilizator>();
 	private string searchQuery = string.Empty;
-	private int numar = 0;
+	private utilizator UtilizatorEditat { get; set; } = new();
+	private bool IsEditMode { get; set; } = false;
+
+	// private int numar = 0;
 	
 
-
-	[SupplyParameterFromForm]
-	private Utilizator Utilizator { get; set; } = new();
+	private utilizator Utilizator { get; set; } = new();
 
 	// To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
 	private async Task AddUtilizator()
 	{
-		using var context = DbFactory.CreateDbContext();
 		
-		bool numarExistent = await context.Utilizator.AnyAsync(u => u.Telefon == Utilizator.Telefon);
+		bool numarExistent = await Task.Run(() => DatabaseHelper.NumarExistent(Utilizator.Telefon));
 		if(numarExistent){
 			errorMessage = "Numărul de telefon există deja!";
 			return;
 		}
 
-		context.Utilizator.Add(Utilizator);
-		await context.SaveChangesAsync();
+		// Adaugă utilizatorul
+		await DatabaseHelper.AddUtilizator(Utilizator);
 
+		// Redirecționează utilizatorul
 		NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+		Utilizator = new utilizator(); // Reset formular
+
 
 	}
 
 
 	protected override async Task OnInitializedAsync()
 	{
-		// Crează contextul la inițializare
-		context = DbFactory.CreateDbContext();
+	
 		await LoadUtilizatoriAsync();
 	}
 
 	private async Task LoadUtilizatoriAsync()
 	{
-		// Încarcă toți utilizatorii sau doar cei care corespund căutării
-		if (string.IsNullOrEmpty(searchQuery))
+		var totiUtilizatorii = await DatabaseHelper.GetAllUtilizatoriAsync();
+
+		if (string.IsNullOrWhiteSpace(searchQuery))
 		{
-			utilizatori = await context.Utilizator.ToListAsync();
+			utilizatori = totiUtilizatorii;
 		}
 		else
 		{
-			utilizatori = await context.Utilizator
-				.Where(u => u.Nume.Contains(searchQuery) || u.Prenume.Contains(searchQuery))
-				.ToListAsync();
+			utilizatori = totiUtilizatorii
+				.Where(u =>
+					(!string.IsNullOrEmpty(u.Nume) && u.Nume.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) ||
+					(!string.IsNullOrEmpty(u.Prenume) && u.Prenume.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)))
+				.ToList();
 		}
 	}
+
 
 	private async Task SearchUtilizatori()
 	{
@@ -201,12 +268,41 @@
 		StateHasChanged();  
 	}
 
+	private void DeschideEditModal(utilizator utilizator)
+	{
+		UtilizatorEditat = new utilizator
+			{
+				Id = utilizator.Id,
+				Nume = utilizator.Nume,
+				Prenume = utilizator.Prenume,
+				Telefon = utilizator.Telefon,
+				Birthday = utilizator.Birthday,
+				Observatie = utilizator.Observatie,
+				Relatie = utilizator.Relatie
+			};
+
+		IsEditMode = true;
+	}
+
+	private async Task SalveazaModificari()
+	{
+		await DatabaseHelper.UpdateUtilizator(UtilizatorEditat);
+		IsEditMode = false;
+
+		await LoadUtilizatoriAsync(); // reîncarcă lista
+		StateHasChanged();
+	}
+
+	private void InchideEditModal()
+	{
+		IsEditMode = false;
+	}
 
 
 	public async ValueTask DisposeAsync()
 	{
-		// Curăță resursele când componenta este distrusă
-		await context.DisposeAsync();
+		// Nu este nimic de curățat momentan
+		await Task.CompletedTask;
 	}
 
 }

@@ -1,39 +1,33 @@
 ﻿using Agenda.Components;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Agenda.Data;
-
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDbContextFactory<AgendaContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("AgendaContext") ?? throw new InvalidOperationException("Connection string 'AgendaContext' not found.")));
 
 
 
-builder.Services.AddQuickGridEntityFrameworkAdapter();
 
+// Adaugă pagina pentru excepții de dezvoltare
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-// Add services to the container.
+// Adaugă serviciile pentru Razor Components și Interactive Server
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configurează pipeline-ul de cereri HTTP
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    // HSTS pentru producție
     app.UseHsts();
-    app.UseMigrationsEndPoint();
+    app.UseMigrationsEndPoint(); // Poți elimina această linie, dacă nu folosești EF
 }
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
 app.UseAntiforgery();
 
+// Configurează componentele Razor
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

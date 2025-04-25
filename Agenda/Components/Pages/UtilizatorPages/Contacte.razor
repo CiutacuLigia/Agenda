@@ -1,5 +1,7 @@
 ﻿@page "/contacte/{Categorie}"
-@inject AgendaContext context
+@using Agenda.Components.Data
+@using Agenda.Models
+@inject ILogger<Contacte> Logger
 
 <h3>@Categorie</h3>
 
@@ -25,30 +27,38 @@ else
     [Parameter]
     public string? Categorie { get; set; }
 
-    private List<Utilizator> utilizatoriFiltrati = new();
+    private List<utilizator> utilizatoriFiltrati = new();
     private readonly List<string> familieKeywords = new()
     {
         "var", "frate", "sora", "cumnat", "cumnata", "mama", "tata",
         "verisor", "verisoara", "unchi", "nora", "ginere"
     };
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        var totiUtilizatorii = context.Utilizator.ToList();
-        if (Categorie?.ToLower() == "familie")
+        try
         {
-            utilizatoriFiltrati = totiUtilizatorii
-                .Where(u => u.Relatie != null &&
-                            familieKeywords.Contains(u.Relatie.ToLower()))
-                .ToList();
+            var totiUtilizatorii = await DatabaseHelper.GetAllUtilizatoriAsync();
+
+            if (Categorie?.ToLower() == "familie")
+            {
+                utilizatoriFiltrati = totiUtilizatorii
+                    .Where(u => u.Relatie != null &&
+                                familieKeywords.Contains(u.Relatie.ToLower()))
+                    .ToList();
+            }
+            else // cunoștințe, prieteni sau orice altceva
+            {
+                utilizatoriFiltrati = totiUtilizatorii
+                    .Where(u => string.IsNullOrEmpty(u.Relatie) ||
+                                !familieKeywords.Contains(u.Relatie.ToLower()))
+                    .ToList();
+            }
         }
-        else // cunoștințe, prieteni sau orice altceva
+        catch (Exception ex)
         {
-            utilizatoriFiltrati = totiUtilizatorii
-                .Where(u => u.Relatie == null ||
-                            !familieKeywords.Contains(u.Relatie.ToLower()))
-                .ToList();
+            Logger.LogError(ex, "Eroare la încărcarea utilizatorilor.");
         }
     }
-
 }
+

@@ -1,8 +1,7 @@
-﻿@page "/utilizators/delete"
-@using Microsoft.EntityFrameworkCore
-@using Agenda.Models
-@inject IDbContextFactory<Agenda.Data.AgendaContext> DbFactory
+﻿@page "/utilizators/delete/{Id:int}"
 @inject NavigationManager NavigationManager
+@using Agenda.Models
+@using Agenda.Components.Data
 
 <PageTitle>Delete</PageTitle>
 
@@ -16,44 +15,42 @@
     {
         <p><em>Loading...</em></p>
     }
-    else {
+    else
+    {
         <dl class="row">
             <dt class="col-sm-2">Nume</dt>
             <dd class="col-sm-10">@utilizator.Nume</dd>
-        </dl>
-        <dl class="row">
+
             <dt class="col-sm-2">Prenume</dt>
             <dd class="col-sm-10">@utilizator.Prenume</dd>
-        </dl>
-        <dl class="row">
+
             <dt class="col-sm-2">Telefon</dt>
             <dd class="col-sm-10">@utilizator.Telefon</dd>
-        </dl>
-        <dl class="row">
+
             <dt class="col-sm-2">Birthday</dt>
-            <dd class="col-sm-10">@utilizator.Birthday</dd>
-        </dl>
-        <dl class="row">
+            <dd class="col-sm-10">@utilizator.Birthday?.ToShortDateString()</dd>
+
             <dt class="col-sm-2">Observatie</dt>
             <dd class="col-sm-10">@utilizator.Observatie</dd>
         </dl>
+
         <EditForm method="post" Model="utilizator" OnValidSubmit="DeleteUtilizator" FormName="delete" Enhance>
-            <button type="submit" class="btn btn-danger" disabled="@(utilizator is null)">Delete</button> |
+            <button type="submit" class="btn btn-danger">Delete</button> |
             <a href="/utilizators">Back to List</a>
         </EditForm>
     }
 </div>
 
 @code {
-    private Utilizator? utilizator;
+    private utilizator? utilizator;
 
-    [SupplyParameterFromQuery]
-    private int Id { get; set; }
+    [Parameter]
+    public int Id { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        utilizator = await context.Utilizator.FirstOrDefaultAsync(m => m.Id == Id);
+        var utilizatori = await DatabaseHelper.GetAllUtilizatoriAsync();
+        utilizator = utilizatori.FirstOrDefault(u => u.Id == Id);
 
         if (utilizator is null)
         {
@@ -63,9 +60,10 @@
 
     private async Task DeleteUtilizator()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.Utilizator.Remove(utilizator!);
-        await context.SaveChangesAsync();
-        NavigationManager.NavigateTo("/utilizators");
+        if (utilizator != null)
+        {
+            await DatabaseHelper.DeleteUtilizator(utilizator.Id);
+            NavigationManager.NavigateTo("/utilizators");
+        }
     }
 }

@@ -1,109 +1,100 @@
-﻿@page "/utilizators/edit"
-@using Microsoft.EntityFrameworkCore
-@using Agenda.Models
-@inject IDbContextFactory<Agenda.Data.AgendaContext> DbFactory
+﻿
+@page "/utilizators/edit/{Id:int}"
 @inject NavigationManager NavigationManager
+@using Agenda.Models
+@using Agenda.Components.Data
 
-<PageTitle>Edit</PageTitle>
+<h1>Editare Utilizator</h1>
 
-<h1>Edit</h1>
-
-<h2>Utilizator</h2>
-<hr />
-@if (Utilizator is null)
+@if (utilizator is null)
 {
-    <p><em>Loading...</em></p>
+    <p><em>Se încarcă...</em></p>
 }
 else
 {
-    <div class="row">
-        <div class="col-md-4">
-            <EditForm method="post" Model="Utilizator" OnValidSubmit="UpdateUtilizator" FormName="edit" Enhance>
-                <DataAnnotationsValidator />
-                <ValidationSummary role="alert"/>
-                <input type="hidden" name="Utilizator.Id" value="@Utilizator.Id" />
-                <div class="mb-3">
-                    <label for="nume" class="form-label">Nume:</label>
-                    <InputText id="nume" @bind-Value="Utilizator.Nume" class="form-control" />
-                    <ValidationMessage For="() => Utilizator.Nume" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="prenume" class="form-label">Prenume:</label>
-                    <InputText id="prenume" @bind-Value="Utilizator.Prenume" class="form-control" />
-                    <ValidationMessage For="() => Utilizator.Prenume" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="telefon" class="form-label">Telefon:</label>
-                    <InputText id="telefon" @bind-Value="Utilizator.Telefon" class="form-control" />
-                    <ValidationMessage For="() => Utilizator.Telefon" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="birthday" class="form-label">Birthday:</label>
-                    <InputDate id="birthday" @bind-Value="Utilizator.Birthday" class="form-control" />
-                    <ValidationMessage For="() => Utilizator.Birthday" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="observatie" class="form-label">Observatie:</label>
-                    <InputText id="observatie" @bind-Value="Utilizator.Observatie" class="form-control" />
-                    <ValidationMessage For="() => Utilizator.Observatie" class="text-danger" />
-                </div>
-                <button type="submit" class="btn btn-primary">Save</button>
-            </EditForm>
+    <EditForm method="post" Model="utilizator" OnValidSubmit="UpdateUtilizator" FormName="edit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label for="nume" class="form-label">Nume:</label>
+            <InputText id="nume" class="form-control" @bind-Value="utilizator.Nume" />
+            <ValidationMessage For="() => utilizator.Nume" />
         </div>
-    </div>
+
+        <div class="mb-3">
+            <label for="prenume" class="form-label">Prenume:</label>
+            <InputText id="prenume" class="form-control" @bind-Value="utilizator.Prenume" />
+            <ValidationMessage For="() => utilizator.Prenume" />
+        </div>
+
+        <div class="mb-3">
+            <label for="telefon" class="form-label">Telefon:</label>
+            <InputText id="telefon" class="form-control" @bind-Value="utilizator.Telefon" />
+            <ValidationMessage For="() => utilizator.Telefon" />
+        </div>
+
+        <div class="mb-3">
+            <label for="birthday" class="form-label">Data nașterii:</label>
+            <InputDate id="birthday" class="form-control" @bind-Value="utilizator.Birthday" Format="dd/MM/yyyy" />
+            <ValidationMessage For="() => utilizator.Birthday" />
+        </div>
+
+        <div class="mb-3">
+            <label for="observatie" class="form-label">Observație:</label>
+            <InputText id="observatie" class="form-control" @bind-Value="utilizator.Observatie" />
+            <ValidationMessage For="() => utilizator.Observatie" />
+        </div>
+
+        <div class="mb-3">
+            <label for="relatie" class="form-label">Relație:</label>
+            <InputSelect id="relatie" class="form-control" @bind-Value="utilizator.Relatie">
+                <option value="">Selectează...</option>
+                <option value="var">Var</option>
+                <option value="frate">Frate</option>
+                <option value="sora">Soră</option>
+                <option value="cumnat">Cumnat</option>
+                <option value="cumnata">Cumnată</option>
+                <option value="mama">Mamă</option>
+                <option value="tata">Tată</option>
+                <option value="verisor">Văr</option>
+                <option value="verisoara">Vărișoară</option>
+                <option value="unchi">Unchi</option>
+                <option value="nora">Noră</option>
+                <option value="ginere">Ginere</option>
+                <option value="cunoștință">Cunoștință</option>
+            </InputSelect>
+            <ValidationMessage For="() => utilizator.Relatie" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Salvează</button>
+        <a href="/utilizators" class="btn btn-secondary ms-2">Anulează</a>
+    </EditForm>
 }
 
-<div>
-    <a href="/utilizators">Back to List</a>
-</div>
-
 @code {
-    [SupplyParameterFromQuery]
-    private int Id { get; set; }
+    [Parameter]
+    public int Id { get; set; }
 
-    [SupplyParameterFromForm]
-    private Utilizator? Utilizator { get; set; }
+    private utilizator? utilizator;
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        Utilizator ??= await context.Utilizator.FirstOrDefaultAsync(m => m.Id == Id);
+        utilizator = await DatabaseHelper.GetUtilizatorByIdAsync(Id);
 
-        if (Utilizator is null)
+
+        if (utilizator is null)
         {
             NavigationManager.NavigateTo("notfound");
         }
     }
 
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task UpdateUtilizator()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.Attach(Utilizator!).State = EntityState.Modified;
-
-        try
+        if (utilizator is not null)
         {
-            await context.SaveChangesAsync();
+            await DatabaseHelper.UpdateUtilizator(utilizator);
+            NavigationManager.NavigateTo("/utilizators", forceLoad: true);
         }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!UtilizatorExists(Utilizator!.Id))
-            {
-                NavigationManager.NavigateTo("notfound");
-            }
-            else
-            {
-                throw;
-            }
-        }
-
-        NavigationManager.NavigateTo("/utilizators");
-    }
-
-    private bool UtilizatorExists(int id)
-    {
-        using var context = DbFactory.CreateDbContext();
-        return context.Utilizator.Any(e => e.Id == id);
     }
 }
